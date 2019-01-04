@@ -23,10 +23,10 @@ export default class Cadastro extends Component {
                     name: values.name,
                     avatar: values.avatar
                     })
-                    .then(function (response) {
-                        localStorage.removeItem(localStorage.key(i))
+                    .then((response) => {
+                        localStorage.removeItem(localStorage.key(i-1))
                     })
-                    .catch(function (error) {
+                    .catch((error) => {
                     console.log(error);
                     });
             }
@@ -57,10 +57,10 @@ export default class Cadastro extends Component {
                     name: this.state.name,
                     avatar: this.state.avatar
                   })
-                  .then(function (response) {
+                  .then((response) => {
                     console.log(response);
                   })
-                  .catch(function (error) {
+                  .catch((error) => {
                     console.log(error);
                   });
             }else{
