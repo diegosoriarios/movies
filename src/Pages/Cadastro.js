@@ -7,34 +7,82 @@ export default class Cadastro extends Component {
         id: 0,
         name: '',
         avatar: '',
-        option: ''
+        option: 'Atores',
+        offline: false,
     };
+
+    componentDidMount = () => {
+        window.addEventListener('online', () => {
+            this.setState({offline: false});
+            for(let i = 1; i <= localStorage.length; i++){
+                let values = JSON.parse(localStorage.getItem(i))
+                console.log(values);
+                axios.post(values.url, {
+                    id: values.id,
+                    createdAt: values.createdAt,
+                    name: values.name,
+                    avatar: values.avatar
+                    })
+                    .then(function (response) {
+                        localStorage.removeItem(localStorage.key(i))
+                    })
+                    .catch(function (error) {
+                    console.log(error);
+                    });
+            }
+        });
+    
+        window.addEventListener('offline', () => {
+            this.setState({offline: true});
+        });
+    }
+
+    componentDidUpdate() {
+        let offlineStatus = !navigator.onLine;
+        if(this.state.offline !== offlineStatus){
+          this.setState({offline: offlineStatus});
+        }
+    }
 
     cadastrar = () => {
         let date = new Date();
         let URL;
+        console.log(this.state.option);
         if(this.state.option === 'Atores'){
             URL = `${string.API_KEY}atores`;
+            if(!this.state.offline){
+                axios.post(URL, {
+                    id: this.state.id,
+                    createdAt: date,
+                    name: this.state.name,
+                    avatar: this.state.avatar
+                  })
+                  .then(function (response) {
+                    console.log(response);
+                  })
+                  .catch(function (error) {
+                    console.log(error);
+                  });
+            }else{
+                let body = {
+                    url: URL,
+                    id: this.state.id,
+                    createdAt: date,
+                    name: this.state.name,
+                    avatar: this.state.avatar
+                }
+                localStorage.setItem((localStorage.length + 1), JSON.stringify(body));
+            }
         }else{
             URL = `${string.API_KEY}filmes`
         }
-        axios.post(URL, {
-            id: this.state.id,
-            createdAt: date,
-            name: this.state.name,
-            avatar: this.state.avatar
-          })
-          .then(function (response) {
-            console.log(response);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
     }
 
     render(){
+        let status = this.state.offline ? 'offline' : 'online'
         return(
             <div>
+                <p>{status}</p>
                 <input
                     type="text"
                     onChange={e => this.setState({id: e.target.value})}
@@ -54,8 +102,8 @@ export default class Cadastro extends Component {
                     value={this.state.avatar}
                 />
                 <select value={this.state.option} onChange={e => this.setState({option: e.target.value})}>
-                    <option value="Aluno">Aluno</option>
-                    <option value="Professor">Professor</option>
+                    <option value="Atores">Atores</option>
+                    <option value="Filmes">Filmes</option>
                 </select>
                 <button onClick={() => this.cadastrar()}>Cadastrar</button>
             </div>
