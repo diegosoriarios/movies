@@ -1,28 +1,47 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import Atores from './Pages/Atores';
+import Filmes from './Pages/Filmes';
+import Cadastro from './Pages/Cadastro';
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
-}
+const Index = () => <h2>Home</h2>;
+const About = () => <h2>About</h2>;
+const Users = () => <h2>Users</h2>;
+
+const App = () => (
+  <Router>
+    <div>
+      <nav className="navBar">
+        <ul className="navList">
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+          <li>
+            <Link to="/about/">About</Link>
+          </li>
+          <li>
+            <Link to="/users/">Users</Link>
+          </li>
+          <li>
+            <Link to="/atores/">Atores</Link>
+          </li>
+          <li>
+            <Link to="/filmes/">Filmes</Link>
+          </li>
+          <li>
+            <Link to="/cadastro/">Cadastro</Link>
+          </li>
+        </ul>
+      </nav>
+
+      <Route path="/" exact component={Index} />
+      <Route path="/about/" component={About} />
+      <Route path="/users/" component={Users} />
+      <Route path="/atores/" component={Atores} />
+      <Route path="/filmes/" component={Filmes} />
+      <Route path="/cadastro/" component={Cadastro} />
+    </div>
+  </Router>
+);
 
 export default App;

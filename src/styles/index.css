@@ -1,0 +1,19 @@
+.container{
+    list-style-type: none;
+    width: 90%;
+    margin: 0 auto;
+}
+
+.box {
+    border: 1px solid black;
+    width: 15%;
+    text-align: center;
+    float: left;
+    margin: 2px;
+}
+
+.box img {
+    border-radius: 50%;
+    height: 128px;
+    width: 128px;
+}
