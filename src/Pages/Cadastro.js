@@ -1,34 +1,41 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import string from '../Strings';
+import Dropzone from 'react-dropzone';
+import request from 'superagent';
+
+const CLOUDINARY_UPLOAD_PRESET = 'picload';
+const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/diegosoriarios/upload';
+const URL = `${string.API_KEY}postagens`;
 
 export default class Cadastro extends Component {   
     state = {
-        id: 0,
-        name: '',
-        avatar: '',
-        option: 'Atores',
+        description: '',
         offline: false,
+        uploadedFileCloudinaryUrl: '',
+        uploadedFile: null,
+        url: ''
     };
 
     componentDidMount = () => {
         window.addEventListener('online', () => {
             this.setState({offline: false});
-            for(let i = 1; i <= localStorage.length; i++){
-                let values = JSON.parse(localStorage.getItem(i))
-                console.log(values);
-                axios.post(values.url, {
-                    id: values.id,
-                    createdAt: values.createdAt,
-                    name: values.name,
-                    avatar: values.avatar
-                    })
-                    .then((response) => {
-                        localStorage.removeItem(localStorage.key(i-1))
-                    })
-                    .catch((error) => {
-                    console.log(error);
-                    });
+            if(localStorage.length !== 0){
+                for(let i = 1; i <= localStorage.length; i++){
+                    let values = JSON.parse(localStorage.getItem(i))
+                    axios.post(values.url, {
+                        createdAt: values.createdAt,
+                        description: values.description,
+                        images: values.url
+                        })
+                        .then((response) => {
+                            console.log(response)
+                            localStorage.removeItem(localStorage.key(i-1))
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        });
+                }
             }
         });
     
@@ -45,37 +52,86 @@ export default class Cadastro extends Component {
     }
 
     cadastrar = () => {
+        console.log(this.state.uploadedFile)
         let date = new Date();
-        let URL;
-        console.log(this.state.option);
-        if(this.state.option === 'Atores'){
-            URL = `${string.API_KEY}atores`;
-            if(!this.state.offline){
-                axios.post(URL, {
-                    id: this.state.id,
-                    createdAt: date,
-                    name: this.state.name,
-                    avatar: this.state.avatar
-                  })
-                  .then((response) => {
-                    console.log(response);
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                  });
-            }else{
-                let body = {
-                    url: URL,
-                    id: this.state.id,
-                    createdAt: date,
-                    name: this.state.name,
-                    avatar: this.state.avatar
-                }
-                localStorage.setItem((localStorage.length + 1), JSON.stringify(body));
-            }
+        if(!this.state.offline){
+            axios.post(URL, {
+                createdAt: date,
+                description: this.state.description,
+                images: this.state.url
+                })
+                .then((response) => {
+                console.log(response);
+                })
+                .catch((error) => {
+                console.log(error);
+                });
         }else{
-            URL = `${string.API_KEY}filmes`
+            let body = {
+                url: URL,
+                createdAt: date,
+                description: this.state.description,
+                images: this.state.url
+            }
+            localStorage.setItem((localStorage.length + 1), JSON.stringify(body));
         }
+    }
+
+    onImageDrop = files => {
+        this.setState({
+            uploadedFile: files[0]
+        });
+        this.handleImageUpload(files[0]);
+    }
+
+    handleImageUpload = file => {
+        let upload = request.post(CLOUDINARY_UPLOAD_URL)
+                            .field('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+                            .field('file', file);
+        upload.end((err, response) => {
+            if(err){
+                console.log(err);
+            }
+
+            if(response.body.secure_url !== ''){
+                this.setState({
+                    uploadedFileCloudinaryUrl: response.body.secure_url,
+                    url: response.body.url
+                });
+            }
+        });
+    }
+
+    renderZone = () => {
+        return (<div className="dropzone">
+            <div className="FileUpload">
+                <Dropzone
+                    onDrop={this.onImageDrop.bind(this)}
+                    accept="image/*"
+                    multiple={false}>
+                        {({getRootProps, getInputProps}) => {
+                        return (
+                            <div
+                            {...getRootProps()}
+                            >
+                            <input {...getInputProps()} />
+                            {
+                            <p>Solte seus arquivos, ou clique para enviar.</p>
+                            }
+                            </div>
+                        )
+                    }}
+                </Dropzone>
+            </div>
+            <div>
+                {this.state.uploadedFileCloudinaryUrl === '' ? null:
+                    <div>
+                        <p>{this.state.uploadedFile.name}</p>
+                        <img src={this.state.uploadedFileCloudinaryUrl} alt={this.state.uploadedFile.name}/>
+                    </div>
+                }
+            </div>
+        </div>);
     }
 
     render(){
@@ -83,29 +139,15 @@ export default class Cadastro extends Component {
         return(
             <div>
                 <p>{status}</p>
-                <input
+                {this.renderZone()}
+                <textarea
                     type="text"
-                    onChange={e => this.setState({id: e.target.value})}
-                    placeholder="id"
-                    value={this.state.id}
-                />
-                <input
-                    type="text"
-                    onChange={e => this.setState({name: e.target.value})}
-                    placeholder="nome"
-                    value={this.state.name}
-                />
-                <input
-                    type="text"
-                    onChange={e => this.setState({avatar: e.target.value})}
-                    placeholder="avatar"
-                    value={this.state.avatar}
-                />
-                <select value={this.state.option} onChange={e => this.setState({option: e.target.value})}>
-                    <option value="Atores">Atores</option>
-                    <option value="Filmes">Filmes</option>
-                </select>
-                <button onClick={() => this.cadastrar()}>Cadastrar</button>
+                    placeholder="Digite a descrição"
+                    className="textArea"
+                    onChange={e => this.setState({description: e.target.value})}
+                    value={this.state.description}
+                /><br />
+                <button onClick={() => this.cadastrar()}>Postar</button>
             </div>
         );
     }

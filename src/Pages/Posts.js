@@ -1,20 +1,23 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import string from '../Strings';
+import axios from 'axios';
+import '../styles/index.css';
 
-export default class Filmes extends Component {
+export default class Postagens extends Component {
     constructor(){
         super();
         this.state = {
-            filmes: []
+            postagens: []
         }
+        this.renderPostagens = this.renderPostagens.bind(this);
     }
-    componentDidMount() {
-        axios.get(`${string.API_KEY}filmes`)
+
+    componentDidMount = () => {
+        axios.get(`${string.API_KEY}postagens`)
             .then(response => {
                 response.data.forEach((value) => {
                     this.setState({
-                        filmes: this.state.filmes.concat(value),
+                        postagens: this.state.postagens.concat(value),
                     })
                 })
             })
@@ -23,11 +26,11 @@ export default class Filmes extends Component {
             })
     }
 
-    renderFilmes = () => {
-        return this.state.filmes.map((value) => {
+    renderPostagens = () => {
+        return this.state.postagens.map((value) => {
             return <li className="box" key={value.id}>
-                <img src={value.avatar} alt={value.name}/><br />
-                {value.name}
+                <img src={value.images} alt={value.description}/><br />
+                {value.description}
             </li>
         })
     }
@@ -35,7 +38,7 @@ export default class Filmes extends Component {
     render(){
         return(
             <ul className="container">
-                {this.renderFilmes()}
+                {this.renderPostagens()}
             </ul>
         );
     }
